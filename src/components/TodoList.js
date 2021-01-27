@@ -1,5 +1,6 @@
 import React from 'react';
 import TodoItems from './TodoItems';
+import TodoService from '../services/todo.service';
 
 class TodoList extends React.Component {
   constructor(props) {
@@ -23,36 +24,25 @@ class TodoList extends React.Component {
 
   handleClick(e) {
     if(this.state.newTask.trim()){
+      const todoItem = {
+        title: this.state.newTask
+      }
 
-      fetch('http://localhost:8080/api/todoitems', {
-        method: 'POST',
-        body: JSON.stringify({
-          title: this.state.newTask
-        }),
-        headers: {
-          'Content-type': 'application/json; charset=UTF-8',
-        },
-      })
-        .then((response) => response.json())
+      TodoService.create(todoItem)
         .then((json) => {
-          const newTasks = [...this.state.tasks, json] 
+          const newTasks = [...this.state.tasks, json.data] 
           this.setState({
-            tasks: newTasks
+            tasks: newTasks,
+            newTask: ''
           })
         });
-      // Empty the newTask property in the state
-      this.setState({
-        newTask: ''
-      })
     } else {
       alert('Please enter a value')
     }
   }
 
   removeItem(id) {
-    fetch('http://localhost:8080/api/todoitems/' + id, {
-      method: 'DELETE',
-    }).then(() => {
+    TodoService.delete(id).then(() => {
       const filteredTasks = this.state.tasks.filter(task => {
         return task.id !== id;
       })
@@ -63,19 +53,15 @@ class TodoList extends React.Component {
   }
 
   editItems(id, value){
-    fetch('http://localhost:8080/api/todoitems/' + id, {
-        method: 'PUT',
-        body: JSON.stringify({
-          title: value
-        }),
-        headers: {
-          'Content-type': 'application/json; charset=UTF-8',
-        }
-    }).then(response => response.json())
+    const todoItem = {
+      title:value
+    }
+    // {title:value}
+    TodoService.update(id,todoItem)
     .then(() => {
       const tasks = this.state.tasks;
       tasks.map(task => {
-        if( task.id == id){
+        if( task.id === id){
           task.title = value
         }
       })
@@ -83,12 +69,15 @@ class TodoList extends React.Component {
     })
   }
 
+  // componentDidMount() {
+  //   fetch('http://localhost:8080/api/todoitems')
+  //   .then((response) => response.json())
+  //   .then((json) => this.setState({tasks: json}));
+  // }
   componentDidMount() {
-    fetch('http://localhost:8080/api/todoitems')
-    .then((response) => response.json())
-    .then((json) => this.setState({tasks: json}));
+    TodoService.getAll()
+    .then((json) => this.setState({tasks: json.data}));
   }
-
   render() {
     console.log(this.state.tasks)
     return (
