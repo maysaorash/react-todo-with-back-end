@@ -1,6 +1,6 @@
 import React from 'react';
 import TodoItems from './TodoItems';
-import TodoService from '../services/todo.service';
+import TodoService from './todo.service';
 
 class TodoList extends React.Component {
   constructor(props) {
